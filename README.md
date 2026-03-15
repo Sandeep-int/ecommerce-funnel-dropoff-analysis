@@ -74,14 +74,13 @@ Because the data is simulated:
 
 # Tools & Technologies
 
-Python
-SQL (SQLite)
-Pandas
-Data Analysis
-Tableau
-Product Analytics
-Funnel Analysis
-
+- Python
+- SQL (SQLite)
+- Pandas
+- Data Analysis
+- Tableau
+- Product Analytics
+- Funnel Analysis
 ---
 
 # Project Workflow
