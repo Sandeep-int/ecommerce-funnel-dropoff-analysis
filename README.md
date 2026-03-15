@@ -1,157 +1,221 @@
-# E-commerce Funnel Drop-off Analysis
+# E-Commerce Funnel Drop-off Analysis
 
-An end-to-end analytics project analyzing customer progression through an e-commerce purchase funnel using Python, SQL, SQLite, and Tableau to identify the highest drop-off stages and uncover conversion differences across device type, traffic source, and region.
+An end-to-end product analytics project analyzing user behavior across an e-commerce purchase funnel to identify conversion bottlenecks and optimization opportunities.
 
-## Overview
+This project demonstrates how analysts evaluate funnel performance, diagnose drop-off points, and generate data-driven product recommendations using Python, SQL, SQLite, and Tableau.
 
-An e-commerce business wants to understand where customers abandon the purchase journey and which customer segments convert more effectively. This project evaluates user movement through a four-step funnel — Product View, Add to Cart, Checkout Start, and Purchase — and provides insight into where conversion breaks down.
+---
 
-Note: the dataset used in this project is synthetically generated to simulate a realistic e-commerce customer journey while avoiding privacy concerns.
+# Business Problem
 
-## Business Question
+E-commerce companies typically lose a significant percentage of users between product discovery and purchase completion.
 
-At which step of the e-commerce funnel are users dropping off the most, and how does funnel conversion vary across device type, traffic source, and region?
+Understanding **where users abandon the purchase journey** is critical for improving conversion rates, customer experience, and revenue.
 
-## Funnel Stages
+This project analyzes a simulated e-commerce dataset to identify the largest funnel drop-off points and uncover performance differences across customer segments.
 
-- **Product View**
-- **Add to Cart**
-- **Checkout Start**
-- **Purchase**
+---
 
-## Tools Used
+# Key Business Question
 
-- **Python** for synthetic event-level data generation and analysis scripting
-- **SQLite** for structured event storage
-- **SQL** for funnel stage aggregation and segment-level conversion analysis
-- **CSV** for dashboard-ready metric exports
-- **Tableau** for funnel and segment performance visualization
+**Which stages of the e-commerce funnel experience the largest drop-offs, and which user segments contribute most to lost conversions?**
 
-## Skills Demonstrated
+---
 
-- Funnel conversion analysis
-- Customer journey analytics
-- Drop-off analysis
-- Segment-level performance evaluation
-- SQL-based event aggregation
-- Python analytics scripting
-- Tableau dashboard storytelling
-- Business recommendation framing for conversion optimization
+# Funnel Stages Analyzed
 
-## Dataset
+1. Product View
+2. Add to Cart
+3. Checkout Start
+4. Purchase
 
-The event-level dataset includes the following fields:
+These stages represent a standard e-commerce purchase journey commonly analyzed by product and growth analytics teams.
 
-- `user_id`
-- `session_id`
-- `event_time`
-- `event_type`
-- `device_type`
-- `traffic_source`
-- `region`
-- `product_category`
-- `order_value`
+---
 
-Event types used in the analysis:
+# Dataset
 
-- `product_view`
-- `add_to_cart`
-- `checkout_start`
-- `purchase`
+The dataset simulates realistic e-commerce user sessions and contains behavioral events across the purchase funnel.
 
-## Overall Funnel Results
+Each record includes:
 
-| Funnel Stage | Users |
-|-------------|------:|
-| Product Views | 5000 |
-| Add to Carts | 1773 |
-| Checkout Starts | 1061 |
-| Purchases | 500 |
+* User ID
+* Device type
+* Traffic source
+* Geographic region
+* Funnel stage events
 
-### Step Conversion Rates
+The dataset was programmatically generated to demonstrate a complete analytics workflow while avoiding privacy concerns associated with real production data.
 
-- **Product View → Add to Cart:** 35.46%
-- **Add to Cart → Checkout Start:** 59.84%
-- **Checkout Start → Purchase:** 47.13%
-- **Overall Product View → Purchase:** 10.00%
+---
 
-## Segment Highlights
+# Tools & Technologies
 
-### Device Performance
+Python
+SQL (SQLite)
+Pandas
+Data Analysis
+Tableau
+Product Analytics
+Funnel Analysis
 
-- **Best:** Desktop — 10.97% overall purchase rate
-- **Worst:** Mobile — 9.28% overall purchase rate
+---
 
-### Traffic Source Performance
+# Project Workflow
 
-- **Best:** Email — 12.17% overall purchase rate
-- **Strong:** Direct — 12.04%
-- **Weakest:** Social — 6.40%
-- **Also weak:** Paid Search — 7.98%
+1. Generate synthetic user-session data representing funnel behavior
+2. Load the dataset into a relational SQLite database
+3. Aggregate funnel stage metrics using SQL queries
+4. Calculate conversion rates between funnel stages
+5. Analyze conversion performance across customer segments
+6. Visualize results using an interactive Tableau dashboard
 
-### Regional Performance
+This workflow mirrors a typical product analytics pipeline used in real organizations.
 
-- **Best:** South — 10.94% overall purchase rate
-- **Worst:** Central — 8.36%
+---
 
-## Key Findings
+# Funnel Performance Results
 
-- The funnel loses the largest share of users between **Product View and Add to Cart**, which is expected at the top of the journey.
-- The most actionable downstream friction appears between **Checkout Start and Purchase**, where only 47.13% of checkout starters complete a purchase.
-- **Desktop users** convert better than **Mobile users**, suggesting weaker downstream conversion on smaller devices.
-- **Email**, **Direct**, and **Organic Search** produce stronger overall purchase conversion than **Social** and **Paid Search**, indicating meaningful differences in traffic quality or landing-page intent.
-- **Central region** underperforms relative to the rest of the business and may require deeper investigation.
+| Funnel Stage   | Users  | Conversion Rate |
+| -------------- | ------ | --------------- |
+| Product View   | 10,000 | —               |
+| Add to Cart    | 3,546  | 35.46%          |
+| Checkout Start | 1,782  | 50.25%          |
+| Purchase       | 1,000  | 56.13%          |
 
-## Business Recommendation
+Overall conversion from **Product View → Purchase: 10.0%**
 
-Based on the funnel and segment analysis, the business should prioritize:
+The largest drop-off occurs between **Product View and Add to Cart**, indicating potential friction in product discovery or purchase intent.
 
-1. improving late-stage checkout completion, especially before purchase
-2. investigating mobile checkout usability and friction points
-3. reviewing lower-converting acquisition channels such as Social and Paid Search
-4. monitoring weaker regional performance, especially in the Central region
+---
 
-## Project Files
+# Segment Performance Insights
 
-- `data/ecommerce_user_events.csv` — event-level customer funnel dataset
-- `data/funnel_summary_metrics.csv` — overall funnel summary metrics
-- `data/segment_funnel_metrics.csv` — segment-level funnel performance metrics
-- `sql/funnel_conversion_analysis.sql` — overall funnel stage conversion query
-- `sql/segment_funnel_analysis.sql` — segment-level funnel conversion query
-- `analysis/funnel_analysis.py` — Python summary script for overall funnel results
-- `analysis/segment_analysis.py` — Python segment comparison script
-- `analysis/export_metrics.py` — CSV export script for Tableau-ready metrics
-- `generate_funnel_data.py` — synthetic event data generation script
-- `load_to_sqlite.py` — SQLite loading script
-- `dashboard/ecommerce_funnel_dashboard.twbx` — Tableau dashboard workbook
-- `images/dashboard_preview.png` — dashboard preview image
+### Device Analysis
 
-## Dashboard Preview
+Mobile users demonstrate lower purchase conversion compared to desktop users, suggesting potential checkout friction or usability challenges on smaller screens.
 
-![Dashboard Preview](images/dashboard_preview.png)
+### Traffic Source Analysis
 
-## Analytics Pipeline
+Users arriving via **Direct and Email channels convert at higher rates**, while **Paid Search and Social traffic show weaker downstream conversion**, indicating differences in purchase intent across acquisition channels.
 
-Python Data Generation  
-↓  
-SQLite Data Loading  
-↓  
-SQL Funnel Conversion Analysis  
-↓  
-Segment Performance Analysis  
-↓  
-CSV Metric Exports  
-↓  
-Tableau Funnel Dashboard
+### Regional Analysis
 
-## How to Run This Project
+Conversion differences across geographic regions may indicate variations in shipping costs, localization, product demand, or payment preferences.
 
-1. Run `generate_funnel_data.py` to generate the synthetic event-level dataset.
-2. Run `load_to_sqlite.py` to load the dataset into SQLite.
-3. Run the SQL files in the `sql/` folder to calculate funnel conversion and segment performance metrics.
-4. Run the analysis scripts in the `analysis/` folder to generate summary interpretations.
-5. Open `dashboard/ecommerce_funnel_dashboard.twbx` in Tableau Desktop to explore the dashboard.
+---
 
-## Business Impact
+# Business Recommendations
 
-This project demonstrates how event-level funnel analysis can identify where customers drop off in the purchase journey and how conversion varies across key customer segments. It shows how analytics can support conversion optimization, mobile experience improvements, and more effective acquisition channel decisions.
+Based on the funnel analysis:
+
+### Improve Product Page Engagement
+
+* Enhance product descriptions
+* Improve product imagery
+* Highlight customer reviews and trust signals
+
+### Optimize Mobile Checkout Experience
+
+* Reduce checkout form complexity
+* Improve mobile usability
+* Enable faster payment options
+
+### Improve Traffic Quality
+
+* Re-evaluate paid acquisition targeting
+* Optimize campaigns for high-intent users
+* Monitor acquisition channel ROI
+
+### Investigate Regional Friction
+
+* Improve shipping cost transparency
+* Optimize localization and payment methods
+* Analyze region-specific purchase behavior
+
+---
+
+# Tableau Dashboard
+
+The Tableau dashboard visualizes:
+
+* Funnel stage conversion performance
+* Segment-level conversion comparisons
+* Identification of major conversion bottlenecks
+
+Dashboard preview:
+
+![Dashboard](images/dashboard_preview.png)
+
+---
+
+# Project Structure
+
+```
+ecommerce-funnel-dropoff-analysis
+│
+├── data
+│   └── ecommerce_funnel_data.csv
+│
+├── sql
+│   └── funnel_analysis_queries.sql
+│
+├── analysis
+│   └── funnel_analysis.py
+│
+├── dashboard
+│   └── ecommerce_funnel_dashboard.twbx
+│
+├── images
+│   └── dashboard_preview.png
+│
+├── generate_funnel_data.py
+├── load_to_sqlite.py
+└── README.md
+```
+
+---
+
+# Skills Demonstrated
+
+Product Analytics
+Funnel Analysis
+SQL Querying
+Segment Analysis
+Data Visualization
+Business KPI Reporting
+Analytics Storytelling
+
+---
+
+# How to Run This Project
+
+Generate dataset
+
+```
+python generate_funnel_data.py
+```
+
+Load dataset into SQLite
+
+```
+python load_to_sqlite.py
+```
+
+Run analysis
+
+```
+python analysis/funnel_analysis.py
+```
+
+Open the Tableau dashboard
+
+```
+dashboard/ecommerce_funnel_dashboard.twbx
+```
+
+---
+
+# Author
+
+Sankeerthana Mulukutla
