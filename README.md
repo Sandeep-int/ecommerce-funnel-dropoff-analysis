@@ -130,6 +130,20 @@ Based on the funnel and segment analysis, the business should prioritize:
 
 ![Dashboard Preview](images/dashboard_preview.png)
 
+## Analytics Pipeline
+
+Python Data Generation  
+↓  
+SQLite Data Loading  
+↓  
+SQL Funnel Conversion Analysis  
+↓  
+Segment Performance Analysis  
+↓  
+CSV Metric Exports  
+↓  
+Tableau Funnel Dashboard
+
 ## How to Run This Project
 
 1. Run `generate_funnel_data.py` to generate the synthetic event-level dataset.
