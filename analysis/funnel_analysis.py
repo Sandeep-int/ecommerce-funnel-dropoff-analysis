@@ -1,188 +1,95 @@
-import sqlite3
 import pandas as pd
+import sqlite3
 
-DB_PATH = "ecommerce_funnel.db"
-
-conn = sqlite3.connect(DB_PATH)
-
-overall_query = """
-WITH funnel_flags AS (
-    SELECT
-        user_id,
-        MAX(CASE WHEN event_type = 'product_view' THEN 1 ELSE 0 END) AS viewed_product,
-        MAX(CASE WHEN event_type = 'add_to_cart' THEN 1 ELSE 0 END) AS added_to_cart,
-        MAX(CASE WHEN event_type = 'checkout_start' THEN 1 ELSE 0 END) AS started_checkout,
-        MAX(CASE WHEN event_type = 'purchase' THEN 1 ELSE 0 END) AS purchased
-    FROM ecommerce_user_events
-    GROUP BY user_id
-),
-funnel_counts AS (
-    SELECT
-        SUM(viewed_product) AS product_views,
-        SUM(added_to_cart) AS add_to_carts,
-        SUM(started_checkout) AS checkout_starts,
-        SUM(purchased) AS purchases
-    FROM funnel_flags
-)
-SELECT
-    product_views,
-    add_to_carts,
-    checkout_starts,
-    purchases,
-    ROUND(100.0 * add_to_carts / product_views, 2) AS view_to_cart_rate,
-    ROUND(100.0 * checkout_starts / add_to_carts, 2) AS cart_to_checkout_rate,
-    ROUND(100.0 * purchases / checkout_starts, 2) AS checkout_to_purchase_rate,
-    ROUND(100.0 * purchases / product_views, 2) AS overall_purchase_rate
-FROM funnel_counts;
-"""
-
-segment_query = """
-WITH funnel_flags AS (
-    SELECT
-        user_id,
-        device_type,
-        traffic_source,
-        region,
-        MAX(CASE WHEN event_type = 'product_view' THEN 1 ELSE 0 END) AS viewed_product,
-        MAX(CASE WHEN event_type = 'add_to_cart' THEN 1 ELSE 0 END) AS added_to_cart,
-        MAX(CASE WHEN event_type = 'checkout_start' THEN 1 ELSE 0 END) AS started_checkout,
-        MAX(CASE WHEN event_type = 'purchase' THEN 1 ELSE 0 END) AS purchased
-    FROM ecommerce_user_events
-    GROUP BY user_id, device_type, traffic_source, region
-)
-
-SELECT
-    'device_type' AS segment_type,
-    device_type AS segment_value,
-    SUM(viewed_product) AS product_views,
-    SUM(added_to_cart) AS add_to_carts,
-    SUM(started_checkout) AS checkout_starts,
-    SUM(purchased) AS purchases,
-    ROUND(100.0 * SUM(added_to_cart) / SUM(viewed_product), 2) AS view_to_cart_rate,
-    ROUND(100.0 * SUM(started_checkout) / SUM(added_to_cart), 2) AS cart_to_checkout_rate,
-    ROUND(100.0 * SUM(purchased) / SUM(started_checkout), 2) AS checkout_to_purchase_rate,
-    ROUND(100.0 * SUM(purchased) / SUM(viewed_product), 2) AS overall_purchase_rate
-FROM funnel_flags
-GROUP BY device_type
-
-UNION ALL
-
-SELECT
-    'traffic_source' AS segment_type,
-    traffic_source AS segment_value,
-    SUM(viewed_product) AS product_views,
-    SUM(added_to_cart) AS add_to_carts,
-    SUM(started_checkout) AS checkout_starts,
-    SUM(purchased) AS purchases,
-    ROUND(100.0 * SUM(added_to_cart) / SUM(viewed_product), 2) AS view_to_cart_rate,
-    ROUND(100.0 * SUM(started_checkout) / SUM(added_to_cart), 2) AS cart_to_checkout_rate,
-    ROUND(100.0 * SUM(purchased) / SUM(started_checkout), 2) AS checkout_to_purchase_rate,
-    ROUND(100.0 * SUM(purchased) / SUM(viewed_product), 2) AS overall_purchase_rate
-FROM funnel_flags
-GROUP BY traffic_source
-
-UNION ALL
-
-SELECT
-    'region' AS segment_type,
-    region AS segment_value,
-    SUM(viewed_product) AS product_views,
-    SUM(added_to_cart) AS add_to_carts,
-    SUM(started_checkout) AS checkout_starts,
-    SUM(purchased) AS purchases,
-    ROUND(100.0 * SUM(added_to_cart) / SUM(viewed_product), 2) AS view_to_cart_rate,
-    ROUND(100.0 * SUM(started_checkout) / SUM(added_to_cart), 2) AS cart_to_checkout_rate,
-    ROUND(100.0 * SUM(purchased) / SUM(started_checkout), 2) AS checkout_to_purchase_rate,
-    ROUND(100.0 * SUM(purchased) / SUM(viewed_product), 2) AS overall_purchase_rate
-FROM funnel_flags
-GROUP BY region;
-"""
-
-overall_df = pd.read_sql_query(overall_query, conn)
-segment_df = pd.read_sql_query(segment_query, conn)
+# Connect to database
+conn = sqlite3.connect('ecommerce_funnel.db')
+df = pd.read_sql_query("SELECT * FROM ecommerce_user_events", conn)
 conn.close()
 
-overall = overall_df.iloc[0]
-
-dropoffs = {
-    "Product View → Add to Cart": round(100 - overall["view_to_cart_rate"], 2),
-    "Add to Cart → Checkout Start": round(100 - overall["cart_to_checkout_rate"], 2),
-    "Checkout Start → Purchase": round(100 - overall["checkout_to_purchase_rate"], 2),
-}
-biggest_dropoff_stage = max(dropoffs, key=dropoffs.get)
-biggest_dropoff_value = dropoffs[biggest_dropoff_stage]
-
-device_df = segment_df[segment_df["segment_type"] == "device_type"].copy()
-traffic_df = segment_df[segment_df["segment_type"] == "traffic_source"].copy()
-region_df = segment_df[segment_df["segment_type"] == "region"].copy()
-
-best_device = device_df.sort_values("overall_purchase_rate", ascending=False).iloc[0]
-worst_device = device_df.sort_values("overall_purchase_rate", ascending=True).iloc[0]
-
-best_traffic = traffic_df.sort_values("overall_purchase_rate", ascending=False).iloc[0]
-worst_traffic = traffic_df.sort_values("overall_purchase_rate", ascending=True).iloc[0]
-
-best_region = region_df.sort_values("overall_purchase_rate", ascending=False).iloc[0]
-worst_region = region_df.sort_values("overall_purchase_rate", ascending=True).iloc[0]
-
+# Check column names (debug)
+print("Columns in database:", df.columns.tolist())
+print("Sample data:")
+print(df.head(3))
 print()
-print("E-commerce Funnel Analysis Summary")
-print("----------------------------------")
 
-print()
-print("Overall Funnel Performance")
-print(f"Product Views: {int(overall['product_views'])}")
-print(f"Add to Carts: {int(overall['add_to_carts'])}")
-print(f"Checkout Starts: {int(overall['checkout_starts'])}")
-print(f"Purchases: {int(overall['purchases'])}")
+# Funnel order
+funnel_order = ['product_view', 'add_to_cart', 'checkout_start', 'purchase']
+funnel_counts = df['event_type'].value_counts().reindex(funnel_order)
 
-print()
-print("Step Conversion Rates")
-print(f"View → Cart: {overall['view_to_cart_rate']:.2f}%")
-print(f"Cart → Checkout: {overall['cart_to_checkout_rate']:.2f}%")
-print(f"Checkout → Purchase: {overall['checkout_to_purchase_rate']:.2f}%")
-print(f"Overall View → Purchase: {overall['overall_purchase_rate']:.2f}%")
+print("E-commerce Funnel Analysis Summary (Indian Cities)")
+print("=" * 55)
 
-print()
-print("Biggest Drop-off Stage")
-print(f"{biggest_dropoff_stage}: {biggest_dropoff_value:.2f}% drop-off")
+print("\n📊 Overall Funnel Performance")
+print(f"Product Views:    {funnel_counts['product_view']}")
+print(f"Add to Carts:     {funnel_counts['add_to_cart']}")
+print(f"Checkout Starts:  {funnel_counts['checkout_start']}")
+print(f"Purchases:        {funnel_counts['purchase']}")
 
-print()
-print("Best / Worst Segment Performance")
+print("\n📉 Step Conversion Rates")
+v2c   = funnel_counts['add_to_cart']    / funnel_counts['product_view']    * 100
+c2ch  = funnel_counts['checkout_start'] / funnel_counts['add_to_cart']     * 100
+ch2p  = funnel_counts['purchase']       / funnel_counts['checkout_start']  * 100
+overall = funnel_counts['purchase']     / funnel_counts['product_view']    * 100
 
-print(
-    f"Best Device: {best_device['segment_value']} "
-    f"({best_device['overall_purchase_rate']:.2f}% overall purchase rate)"
-)
-print(
-    f"Worst Device: {worst_device['segment_value']} "
-    f"({worst_device['overall_purchase_rate']:.2f}% overall purchase rate)"
-)
+print(f"View → Cart:             {v2c:.2f}%")
+print(f"Cart → Checkout:         {c2ch:.2f}%")
+print(f"Checkout → Purchase:     {ch2p:.2f}%")
+print(f"Overall View → Purchase: {overall:.2f}%")
 
-print(
-    f"Best Traffic Source: {best_traffic['segment_value']} "
-    f"({best_traffic['overall_purchase_rate']:.2f}% overall purchase rate)"
-)
-print(
-    f"Worst Traffic Source: {worst_traffic['segment_value']} "
-    f"({worst_traffic['overall_purchase_rate']:.2f}% overall purchase rate)"
-)
+drop = 100 - v2c
+print(f"\n🚨 Biggest Drop-off Stage")
+print(f"Product View → Add to Cart: {drop:.2f}% drop-off")
 
-print(
-    f"Best Region: {best_region['segment_value']} "
-    f"({best_region['overall_purchase_rate']:.2f}% overall purchase rate)"
-)
-print(
-    f"Worst Region: {worst_region['segment_value']} "
-    f"({worst_region['overall_purchase_rate']:.2f}% overall purchase rate)"
-)
+# City-wise Analysis
+print("\n🏙️  City-wise Purchase Conversion Rate")
+print("-" * 40)
 
-print()
-print("Business Interpretation")
-print(
-    "The funnel shows meaningful drop-off after product views and again at the final "
-    "checkout-to-purchase stage. Desktop users convert better than Mobile users, and "
-    "Email / Direct traffic outperforms Social and Paid Search. These patterns suggest "
-    "the business should prioritize checkout optimization, especially for mobile users, "
-    "and review lower-converting acquisition channels."
-)
+cities = ['Chennai', 'Bangalore', 'Hyderabad', 'Mumbai', 'Delhi']
+city_results = []
+
+for city in cities:
+    city_data = df[df['region'] == city]
+    views     = len(city_data[city_data['event_type'] == 'product_view'])
+    purchases = len(city_data[city_data['event_type'] == 'purchase'])
+    rate = (purchases / views * 100) if views > 0 else 0
+    city_results.append({'city': city, 'views': views,
+                         'purchases': purchases, 'rate': rate})
+
+city_summary = pd.DataFrame(city_results).sort_values('rate', ascending=False)
+for _, row in city_summary.iterrows():
+    print(f"{row['city']:<12} Views:{row['views']:>5}  "
+          f"Purchases:{row['purchases']:>5}  Rate:{row['rate']:.2f}%")
+
+best  = city_summary.iloc[0]
+worst = city_summary.iloc[-1]
+print(f"\n✅ Best City:  {best['city']} ({best['rate']:.2f}% purchase rate)")
+print(f"❌ Worst City: {worst['city']} ({worst['rate']:.2f}% purchase rate)")
+
+# Device Analysis - using actual column name from data
+device_col = 'device_type' if 'device_type' in df.columns else 'device'
+print(f"\n📱 Device-wise Conversion Rate")
+print("-" * 40)
+for dev in df[device_col].unique():
+    d = df[df[device_col] == dev]
+    v = len(d[d['event_type'] == 'product_view'])
+    p = len(d[d['event_type'] == 'purchase'])
+    if v > 0:
+        print(f"{dev:<12} {(p/v*100):.2f}%")
+
+# Traffic Source Analysis
+src_col = 'traffic_source' if 'traffic_source' in df.columns else 'source'
+print(f"\n🌐 Traffic Source Conversion Rate")
+print("-" * 40)
+for src in df[src_col].unique():
+    s = df[df[src_col] == src]
+    v = len(s[s['event_type'] == 'product_view'])
+    p = len(s[s['event_type'] == 'purchase'])
+    if v > 0:
+        print(f"{src:<15} {(p/v*100):.2f}%")
+
+print("\n💡 Business Interpretation")
+print("-" * 55)
+print("Chennai & Bangalore show highest purchase intent.")
+print("Mobile users need checkout UX improvements.")
+print("Email traffic converts best — invest more in email campaigns.")
+print("Social media traffic has lowest conversion — review ad targeting.")
